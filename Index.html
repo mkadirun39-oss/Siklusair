@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Maya: Siklus Air (Hidrologi) - Kelas 5 SD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Nunito untuk tampilan ramah anak SD -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Pengaturan dasar layar penuh 16:9 tanpa scrollbar */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        }
+        h1, h2, h3, .font-title {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Animasi tombol ceria */
+        .btn-bounce {
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+        }
+        .btn-bounce:hover {
+            transform: translateY(-2px);
+        }
+        .btn-bounce:active {
+            transform: translateY(2px) scale(0.97);
+        }
+
+        /* Custom range slider ramah anak */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #f59e0b;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #fed7aa;
+            border-radius: 999px;
+            border: 1px solid #fb923c;
+        }
+
+        /* Animasi pulsing lembut */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+        }
+        .active-stage-glow {
+            animation: pulseGlow 1.8s infinite;
+        }
+
+        /* Kanvas agar tajam di semua layar */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="flex flex-col w-screen h-screen overflow-hidden text-slate-800">
+
+    <!-- ================= HEADER & NAVIGASI TAB ================= -->
+    <header class="h-[10vh] min-h-[56px] max-h-[72px] bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 text-white px-4 lg:px-6 flex items-center justify-between shadow-md z-20 shrink-0">
+        <!-- Logo & Judul -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-amber-400 rounded-2xl flex items-center justify-center shadow-inner border-2 border-white text-2xl">
+                💧
+            </div>
+            <div>
+                <h1 class="text-lg sm:text-xl lg:text-2xl font-bold tracking-wide leading-none drop-shadow">
+                    Lab Maya: Siklus Air (Hidrologi)
+                </h1>
+                <p class="text-[11px] sm:text-xs text-sky-100 font-semibold mt-0.5">
+                    IPAS Kelas 5 SD • Mengenal Proses Perputaran Air di Bumi
+                </p>
+            </div>
+        </div>
+
+        <!-- 5 Tab Navigasi Utama -->
+        <nav class="flex items-center gap-1.5 sm:gap-2 bg-blue-900/40 p-1.5 rounded-2xl border border-white/20">
+            <button onclick="switchTab('teori')" id="tab-btn-teori" class="tab-btn btn-bounce px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all bg-white/10 hover:bg-white/20 text-white">
+                <span>📖</span> <span class="hidden md:inline">Teori</span>
+            </button>
+            <button onclick="switchTab('prosedur')" id="tab-btn-prosedur" class="tab-btn btn-bounce px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all bg-white/10 hover:bg-white/20 text-white">
+                <span>🧭</span> <span class="hidden md:inline">Prosedur</span>
+            </button>
+            <button onclick="switchTab('simulasi')" id="tab-btn-simulasi" class="tab-btn btn-bounce px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all bg-amber-400 text-slate-900 shadow-md">
+                <span>🔬</span> <span>Simulasi</span>
+            </button>
+            <button onclick="switchTab('lkpd')" id="tab-btn-lkpd" class="tab-btn btn-bounce px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all bg-white/10 hover:bg-white/20 text-white">
+                <span>📝</span> <span class="hidden md:inline">LKPD</span>
+            </button>
+            <button onclick="switchTab('pengembang')" id="tab-btn-pengembang" class="tab-btn btn-bounce px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all bg-white/10 hover:bg-white/20 text-white">
+                <span>👩‍🏫</span> <span class="hidden md:inline">Pengembang</span>
+            </button>
+        </nav>
+
+        <!-- Tombol Kontrol Suara (Mute/Unmute) -->
+        <button id="btn-sound-toggle" onclick="toggleSound()" class="btn-bounce flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-3 py-2 rounded-2xl border-2 border-white/80 shadow-md text-xs sm:text-sm" title="Aktifkan/Matikan Suara">
+            <span id="sound-icon" class="text-base">🔊</span>
+            <span id="sound-text" class="hidden sm:inline">Suara Aktif</span>
+        </button>
+    </header>
+
+    <!-- ================= KONTEN UTAMA (90VH) ================= -->
+    <main class="w-full h-[90vh] p-2.5 sm:p-3.5 flex flex-col overflow-hidden relative">
+
+        <!-- =========================================================
+             TAB 1: TEORI (6 TAHAPAN SIKLUS AIR)
+             ========================================================= -->
+        <section id="view-teori" class="tab-view hidden w-full h-full flex flex-col justify-between gap-2.5">
+            <!-- Pengantar Singkat -->
+            <div class="bg-white/95 rounded-2xl px-4 py-2.5 shadow-sm border-2 border-sky-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">🌍</span>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-sky-800">Apa itu Siklus Air (Siklus Hidrologi)?</h2>
+                        <p class="text-xs sm:text-sm text-slate-600 font-semibold">
+                            Siklus air adalah perputaran air secara terus-menerus dari Bumi ke atmosfer dan kembali lagi ke Bumi melalui 6 tahapan utama berikut:
+                        </p>
+                    </div>
+                </div>
+                <button onclick="switchTab('simulasi')" class="btn-bounce hidden sm:flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow">
+                    Coba Simulasi ➡️
+                </button>
+            </div>
+
+            <!-- Grid 6 Kartu Tahapan Siklus Air (3 Kolom x 2 Baris - Pas 100% Tanpa Scroll) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 flex-1 min-h-0">
+                <!-- 1. Evaporasi -->
+                <div class="bg-white rounded-2xl p-3.5 border-2 border-amber-300 shadow-sm flex flex-col justify-between hover:border-amber-500 transition-colors">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-extrabold">Tahap 1</span>
+                            <span class="text-2xl">☀️🌊</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-amber-600">1. Evaporasi (Penguapan)</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-snug">
+                            Proses menguapnya air yang ada di permukaan Bumi seperti <strong>laut, sungai, dan danau</strong> menjadi uap air karena terkena panas sinar matahari.
+                        </p>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-amber-100 flex justify-between items-center text-[11px] font-bold text-amber-700">
+                        <span>Wujud: Cair ➡️ Gas (Uap Air)</span>
+                        <button onclick="jumpToSimStage('evaporasi')" class="bg-amber-100 hover:bg-amber-200 px-2.5 py-1 rounded-lg text-amber-900">Lihat Animasi ▶</button>
+                    </div>
+                </div>
+
+                <!-- 2. Transpirasi -->
+                <div class="bg-white rounded-2xl p-3.5 border-2 border-emerald-300 shadow-sm flex flex-col justify-between hover:border-emerald-500 transition-colors">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-extrabold">Tahap 2</span>
+                            <span class="text-2xl">🌳🍃</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-emerald-600">2. Transpirasi</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-snug">
+                            Proses penguapan air yang berasal dari <strong>tumbuhan dan pepohonan</strong> melalui pori-pori daun (stomata) akibat panas matahari.
+                        </p>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-emerald-100 flex justify-between items-center text-[11px] font-bold text-emerald-700">
+                        <span>Sumber: Hutan & Tumbuhan</span>
+                        <button onclick="jumpToSimStage('transpirasi')" class="bg-emerald-100 hover:bg-emerald-200 px-2.5 py-1 rounded-lg text-emerald-900">Lihat Animasi ▶</button>
+                    </div>
+                </div>
+
+                <!-- 3. Kondensasi -->
+                <div class="bg-white rounded-2xl p-3.5 border-2 border-sky-300 shadow-sm flex flex-col justify-between hover:border-sky-500 transition-colors">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded-full text-xs font-extrabold">Tahap 3</span>
+                            <span class="text-2xl">☁️❄️</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-sky-600">3. Kondensasi (Pengembunan)</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-snug">
+                            Uap air naik ke atmosfer yang bersuhu dingin lalu berubah menjadi titik-titik air kecil dan berkumpul membentuk <strong>awan</strong>.
+                        </p>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-sky-100 flex justify-between items-center text-[11px] font-bold text-sky-700">
+                        <span>Wujud: Gas ➡️ Titik Air (Awan)</span>
+                        <button onclick="jumpToSimStage('kondensasi')" class="bg-sky-100 hover:bg-sky-200 px-2.5 py-1 rounded-lg text-sky-900">Lihat Animasi ▶</button>
+                    </div>
+                </div>
+
+                <!-- 4. Presipitasi -->
+                <div class="bg-white rounded-2xl p-3.5 border-2 border-indigo-300 shadow-sm flex flex-col justify-between hover:border-indigo-500 transition-colors">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="px-2.5 py-0.5 bg-indigo-100 text-indigo-800 rounded-full text-xs font-extrabold">Tahap 4</span>
+                            <span class="text-2xl">🌧️🌨️</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-indigo-600">4. Presipitasi (Hujan)</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-snug">
+                            Saat awan sudah terlalu jenuh dan berat menahan titik-titik air, air pun jatuh kembali ke permukaan Bumi sebagai <strong>hujan</strong> atau salju.
+                        </p>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-indigo-100 flex justify-between items-center text-[11px] font-bold text-indigo-700">
+                        <span>Awan Mendung ➡️ Tetes Hujan</span>
+                        <button onclick="jumpToSimStage('presipitasi')" class="bg-indigo-100 hover:bg-indigo-200 px-2.5 py-1 rounded-lg text-indigo-900">Lihat Animasi ▶</button>
+                    </div>
+                </div>
+
+                <!-- 5. Infiltrasi -->
+                <div class="bg-white rounded-2xl p-3.5 border-2 border-amber-700/40 shadow-sm flex flex-col justify-between hover:border-amber-700 transition-colors">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="px-2.5 py-0.5 bg-orange-100 text-amber-900 rounded-full text-xs font-extrabold">Tahap 5</span>
+                            <span class="text-2xl">🌱💧</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-amber-800">5. Infiltrasi (Peresapan)</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-snug">
+                            Sebagian air hujan yang jatuh ke daratan akan <strong>meresap ke dalam pori-pori tanah</strong> dan tersimpan sebagai cadangan <strong>air tanah</strong>.
+                        </p>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-orange-100 flex justify-between items-center text-[11px] font-bold text-amber-800">
+                        <span>Membentuk Sumber Mata Air</span>
+                        <button onclick="jumpToSimStage('infiltrasi')" class="bg-orange-100 hover:bg-orange-200 px-2.5 py-1 rounded-lg text-amber-900">Lihat Animasi ▶</button>
+                    </div>
+                </div>
+
+                <!-- 6. Aliran Permukaan (Runoff) -->
+                <div class="bg-white rounded-2xl p-3.5 border-2 border-cyan-300 shadow-sm flex flex-col justify-between hover:border-cyan-500 transition-colors">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="px-2.5 py-0.5 bg-cyan-100 text-cyan-800 rounded-full text-xs font-extrabold">Tahap 6</span>
+                            <span class="text-2xl">🏞️🌊</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-cyan-600">6. Aliran Permukaan (Runoff)</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-snug">
+                            Air hujan yang tidak terserap tanah akan <strong>mengalir di atas permukaan daratan</strong> melalui parit dan sungai kembali menuju ke laut.
+                        </p>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-cyan-100 flex justify-between items-center text-[11px] font-bold text-cyan-700">
+                        <span>Siklus Siap Berulang Kembali!</span>
+                        <button onclick="jumpToSimStage('runoff')" class="bg-cyan-100 hover:bg-cyan-200 px-2.5 py-1 rounded-lg text-cyan-900">Lihat Animasi ▶</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================================
+             TAB 2: PROSEDUR PENGGUNAAN LAB MAYA
+             ========================================================= -->
+        <section id="view-prosedur" class="tab-view hidden w-full h-full flex flex-col justify-between gap-3">
+            <div class="bg-white/95 rounded-2xl p-4 shadow-sm border-2 border-sky-200 shrink-0">
+                <h2 class="text-lg sm:text-xl font-bold text-sky-800 flex items-center gap-2">
+                    <span>🧭</span> Petunjuk Langkah-Langkah Praktikum Lab Maya
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-600 font-semibold mt-0.5">
+                    Ikuti 5 langkah mudah berikut untuk mengamati bagaimana siklus air bekerja di alam!
+                </p>
+            </div>
+
+            <!-- 5 Langkah Berurutan -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3 flex-1 min-h-0">
+                <!-- Langkah 1 -->
+                <div class="bg-white rounded-2xl p-4 border-2 border-sky-200 shadow-sm flex flex-col items-center text-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500 text-white font-title font-bold text-xl flex items-center justify-center shadow">1</div>
+                    <div class="text-4xl my-2">📖</div>
+                    <div>
+                        <h3 class="font-bold text-sky-800 text-sm sm:text-base mb-1">Pahami Materi</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Buka tab <strong>Teori</strong> terlebih dahulu untuk mengenal arti dari 6 tahapan siklus air.
+                        </p>
+                    </div>
+                    <span class="text-[11px] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full">Persiapan Awal</span>
+                </div>
+
+                <!-- Langkah 2 -->
+                <div class="bg-white rounded-2xl p-4 border-2 border-amber-200 shadow-sm flex flex-col items-center text-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white font-title font-bold text-xl flex items-center justify-center shadow">2</div>
+                    <div class="text-4xl my-2">🌡️</div>
+                    <div>
+                        <h3 class="font-bold text-amber-700 text-sm sm:text-base mb-1">Atur Suhu Matahari</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Pada tab <strong>Simulasi</strong>, geser pengatur <strong>Suhu Matahari</strong> untuk melihat pengaruh panas terhadap penguapan.
+                        </p>
+                    </div>
+                    <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full">Eksperimen Suhu</span>
+                </div>
+
+                <!-- Langkah 3 -->
+                <div class="bg-white rounded-2xl p-4 border-2 border-emerald-200 shadow-sm flex flex-col items-center text-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white font-title font-bold text-xl flex items-center justify-center shadow">3</div>
+                    <div class="text-4xl my-2">🎛️</div>
+                    <div>
+                        <h3 class="font-bold text-emerald-700 text-sm sm:text-base mb-1">Uji Tiap Tahapan</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Klik tombol tahapan satu per satu (<em>Evaporasi</em> hingga <em>Aliran Permukaan</em>) dan dengarkan efek suaranya.
+                        </p>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">Observasi Detail</span>
+                </div>
+
+                <!-- Langkah 4 -->
+                <div class="bg-white rounded-2xl p-4 border-2 border-indigo-200 shadow-sm flex flex-col items-center text-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500 text-white font-title font-bold text-xl flex items-center justify-center shadow">4</div>
+                    <div class="text-4xl my-2">🔄</div>
+                    <div>
+                        <h3 class="font-bold text-indigo-700 text-sm sm:text-base mb-1">Jalankan Siklus Penuh</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Tekan tombol <strong>Simulasi Otomatis</strong> untuk menyaksikan perputaran siklus air secara berurutan.
+                        </p>
+                    </div>
+                    <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full">Siklus Lengkap</span>
+                </div>
+
+                <!-- Langkah 5 -->
+                <div class="bg-white rounded-2xl p-4 border-2 border-rose-200 shadow-sm flex flex-col items-center text-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500 text-white font-title font-bold text-xl flex items-center justify-center shadow">5</div>
+                    <div class="text-4xl my-2">📝</div>
+                    <div>
+                        <h3 class="font-bold text-rose-700 text-sm sm:text-base mb-1">Kerjakan LKPD</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Buka tab <strong>LKPD</strong>, isi nama dan kelasmu, lalu jawab 5 soal evaluasi untuk melihat nilaimu!
+                        </p>
+                    </div>
+                    <span class="text-[11px] font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full">Evaluasi Belajar</span>
+                </div>
+            </div>
+
+            <!-- Bar Bawah Ajakan -->
+            <div class="bg-gradient-to-r from-sky-500 to-blue-600 rounded-2xl p-3 text-white flex items-center justify-between shrink-0 shadow">
+                <p class="text-xs sm:text-sm font-bold flex items-center gap-2">
+                    <span>💡</span> Tips: Pastikan tombol <strong>Suara Aktif</strong> di pojok kanan atas menyala agar pengalaman simulasi makin seru!
+                </p>
+                <button onclick="switchTab('simulasi')" class="btn-bounce bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold px-5 py-2 rounded-xl text-xs sm:text-sm shadow">
+                    Mulai Praktikum Sekarang 🚀
+                </button>
+            </div>
+        </section>
+
+        <!-- =========================================================
+             TAB 3: SIMULASI INTERAKTIF (AREA UTAMA)
+             ========================================================= -->
+        <section id="view-simulasi" class="tab-view w-full h-full flex flex-col lg:flex-row gap-2.5 overflow-hidden">
+            
+            <!-- KOLOM KIRI (70%): Kanvas Simulasi Alam + Tombol Kontrol Tahapan -->
+            <div class="flex-1 lg:w-[70%] h-full flex flex-col gap-2 min-h-0">
+                
+                <!-- Kontainer Kanvas Animasi Siklus Air -->
+                <div id="canvas-wrapper" class="relative flex-1 w-full bg-sky-200 rounded-2xl overflow-hidden border-4 border-white shadow-md min-h-0">
+                    <canvas id="waterCycleCanvas"></canvas>
+
+                    <!-- Badge Status Aktif Mengambang di Pojok Kiri Atas Kanvas -->
+                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3.5 py-1.5 rounded-xl border-2 border-sky-300 shadow flex items-center gap-2">
+                        <span id="badge-stage-icon" class="text-lg">🌤️</span>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 leading-none">Tahap Aktif</div>
+                            <div id="badge-stage-name" class="text-xs sm:text-sm font-extrabold text-sky-800 leading-tight">Siap Mengamati</div>
+                        </div>
+                    </div>
+
+                    <!-- Indikator Mode Otomatis (Jika Aktif) -->
+                    <div id="auto-mode-indicator" class="hidden absolute top-3 right-3 bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md flex items-center gap-1.5 animate-pulse">
+                        <span>🔄</span> Siklus Otomatis Berjalan...
+                    </div>
+                </div>
+
+                <!-- Bar Tombol Tahapan Individu (6 Tahapan Siklus Air) -->
+                <div class="bg-white/95 rounded-2xl p-2 border-2 border-sky-200 shadow-sm shrink-0">
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                        <button onclick="triggerStage('evaporasi')" id="btn-stage-evaporasi" class="stage-btn btn-bounce py-2 px-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 border-2 border-amber-300 text-amber-900 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-0.5">
+                            <span class="text-base">☀️</span>
+                            <span>1. Evaporasi</span>
+                        </button>
+                        <button onclick="triggerStage('transpirasi')" id="btn-stage-transpirasi" class="stage-btn btn-bounce py-2 px-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 text-emerald-900 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-0.5">
+                            <span class="text-base">🌳</span>
+                            <span>2. Transpirasi</span>
+                        </button>
+                        <button onclick="triggerStage('kondensasi')" id="btn-stage-kondensasi" class="stage-btn btn-bounce py-2 px-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 border-2 border-sky-300 text-sky-900 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-0.5">
+                            <span class="text-base">☁️</span>
+                            <span>3. Kondensasi</span>
+                        </button>
+                        <button onclick="triggerStage('presipitasi')" id="btn-stage-presipitasi" class="stage-btn btn-bounce py-2 px-1.5 rounded-xl bg-indigo-100 hover:bg-indigo-200 border-2 border-indigo-300 text-indigo-900 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-0.5">
+                            <span class="text-base">🌧️</span>
+                            <span>4. Presipitasi</span>
+                        </button>
+                        <button onclick="triggerStage('infiltrasi')" id="btn-stage-infiltrasi" class="stage-btn btn-bounce py-2 px-1.5 rounded-xl bg-orange-100 hover:bg-orange-200 border-2 border-orange-300 text-amber-950 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-0.5">
+                            <span class="text-base">🌱</span>
+                            <span>5. Infiltrasi</span>
+                        </button>
+                        <button onclick="triggerStage('runoff')" id="btn-stage-runoff" class="stage-btn btn-bounce py-2 px-1.5 rounded-xl bg-cyan-100 hover:bg-cyan-200 border-2 border-cyan-300 text-cyan-900 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-0.5">
+                            <span class="text-base">🏞️</span>
+                            <span>6. Aliran Perm.</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KOLOM KANAN (30%): Panel Kontrol, Indikator Alam & Penjelasan Dinamis -->
+            <aside class="w-full lg:w-[30%] h-auto lg:h-full flex flex-col justify-between gap-2 shrink-0">
+                
+                <!-- 1. Kontrol Simulasi Otomatis & Reset -->
+                <div class="bg-white rounded-2xl p-3 border-2 border-sky-200 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-sky-800 uppercase tracking-wide">🎮 Kontrol Utama</span>
+                        <span class="text-[11px] font-bold text-slate-400">Klik tombol di bawah</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="btn-auto-cycle" onclick="toggleAutoCycle()" class="col-span-2 btn-bounce bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold py-2.5 px-3 rounded-xl shadow text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                            <span id="auto-btn-icon">▶️</span>
+                            <span id="auto-btn-text">Simulasi Otomatis</span>
+                        </button>
+                        <button onclick="resetSimulation()" class="btn-bounce bg-rose-500 hover:bg-rose-600 text-white font-extrabold py-2.5 px-2 rounded-xl shadow text-xs sm:text-sm flex items-center justify-center gap-1" title="Kembalikan ke kondisi awal">
+                            <span>🔄</span>
+                            <span>Reset</span>
+                        </button>
+                    </div>
+
+                    <!-- Slider Suhu Matahari -->
+                    <div class="mt-1 bg-amber-50/90 p-2.5 rounded-xl border border-amber-200">
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="sun-temp-slider" class="text-xs font-extrabold text-amber-800 flex items-center gap-1">
+                                <span>☀️</span> Suhu Matahari
+                            </label>
+                            <span id="sun-temp-value" class="text-xs font-extrabold bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">
+                                32°C (Hangat)
+                            </span>
+                        </div>
+                        <input type="range" id="sun-temp-slider" min="15" max="45" value="32" oninput="updateSunTemp(this.value)" class="w-full">
+                        <div class="flex justify-between text-[10px] font-bold text-amber-700/80 mt-0.5">
+                            <span>15°C (Sejuk)</span>
+                            <span>30°C (Normal)</span>
+                            <span>45°C (Terik)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Indikator Status Kondisi Alam -->
+                <div class="bg-white rounded-2xl p-3 border-2 border-sky-200 shadow-sm">
+                    <div class="text-xs font-extrabold text-sky-800 uppercase tracking-wide mb-2">📊 Indikator Kondisi Alam</div>
+                    <div class="space-y-2">
+                        <!-- Bar Kelembapan Awan -->
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-0.5">
+                                <span class="text-slate-600">☁️ Kelembapan Awan</span>
+                                <span id="stat-cloud-text" class="text-sky-700">25%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="stat-cloud-bar" class="h-full bg-sky-500 transition-all duration-300 rounded-full" style="width: 25%"></div>
+                            </div>
+                        </div>
+                        <!-- Bar Cadangan Air Tanah -->
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-0.5">
+                                <span class="text-slate-600">💧 Cadangan Air Tanah</span>
+                                <span id="stat-ground-text" class="text-emerald-700">40%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="stat-ground-bar" class="h-full bg-emerald-500 transition-all duration-300 rounded-full" style="width: 40%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Panel Keterangan Dinamis -->
+                <div id="info-panel-box" class="flex-1 bg-gradient-to-br from-sky-50 to-white rounded-2xl p-3.5 border-2 border-sky-300 shadow-sm flex flex-col justify-between min-h-0">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span id="info-emoji" class="text-2xl">🌤️</span>
+                            <h3 id="info-title" class="text-sm sm:text-base font-extrabold text-sky-900">Selamat Datang di Lab Alam!</h3>
+                        </div>
+                        <p id="info-desc" class="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-semibold">
+                            Pilih salah satu tombol tahapan di bawah layar atau klik <strong>Simulasi Otomatis</strong> untuk mengamati perjalanan air dari laut ke awan hingga kembali ke Bumi.
+                        </p>
+                    </div>
+                    <div id="info-fact" class="mt-2 bg-sky-100/80 border border-sky-200 rounded-xl p-2 text-[11px] font-bold text-sky-900">
+                        💡 Fakta Seru: Air yang kamu minum hari ini adalah air yang sama yang sudah berputar di Bumi sejak zaman dinosaurus!
+                    </div>
+                </div>
+
+            </aside>
+        </section>
+
+        <!-- =========================================================
+             TAB 4: LKPD (LEMBAR KERJA PESERTA DIDIK)
+             ========================================================= -->
+        <section id="view-lkpd" class="tab-view hidden w-full h-full flex flex-col justify-between gap-2.5">
+            
+            <!-- Header LKPD: Identitas Siswa & Kontrol -->
+            <div class="bg-white rounded-2xl px-4 py-2.5 border-2 border-sky-200 shadow-sm flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📝</span>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-sky-900 leading-tight">LKPD Interaktif: Uji Pemahaman Siklus Air</h2>
+                        <p class="text-[11px] text-slate-500 font-bold">Isi identitasmu, jawab 5 soal berikut, lalu klik Periksa Jawaban!</p>
+                    </div>
+                </div>
+
+                <!-- Input Nama & Kelas -->
+                <div class="flex items-center gap-2">
+                    <input type="text" id="student-name" placeholder="Ketik Nama Lengkap..." class="px-3 py-1.5 rounded-xl border-2 border-sky-200 text-xs sm:text-sm font-bold focus:outline-none focus:border-sky-500 w-36 sm:w-48">
+                    <input type="text" id="student-class" value="Kelas 5" placeholder="Kelas" class="px-3 py-1.5 rounded-xl border-2 border-sky-200 text-xs sm:text-sm font-bold focus:outline-none focus:border-sky-500 w-20 sm:w-24 text-center">
+                </div>
+            </div>
+
+            <!-- Kontainer 5 Soal LKPD (Tata Letak 2 Kolom Rapi Tanpa Scroll) -->
+            <div id="lkpd-questions-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 flex-1 min-h-0">
+                <!-- Soal 1 -->
+                <div class="bg-white rounded-2xl p-3 border-2 border-slate-200 shadow-sm flex flex-col justify-between" id="q-card-1">
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800">
+                        <span class="inline-block bg-sky-500 text-white px-2 py-0.5 rounded-lg mr-1">1</span>
+                        Proses menguapnya air laut dan sungai karena terkena panas sinar matahari disebut...
+                    </p>
+                    <div class="grid grid-cols-2 gap-1.5 mt-1.5">
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-sky-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q1" value="A" class="accent-sky-600"> A. Kondensasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-sky-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q1" value="B" class="accent-sky-600"> B. Evaporasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-sky-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q1" value="C" class="accent-sky-600"> C. Infiltrasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-sky-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q1" value="D" class="accent-sky-600"> D. Presipitasi
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Soal 2 -->
+                <div class="bg-white rounded-2xl p-3 border-2 border-slate-200 shadow-sm flex flex-col justify-between" id="q-card-2">
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800">
+                        <span class="inline-block bg-emerald-500 text-white px-2 py-0.5 rounded-lg mr-1">2</span>
+                        Penguapan air yang berasal dari daun-daun tumbuhan hijau di hutan dinamakan...
+                    </p>
+                    <div class="grid grid-cols-2 gap-1.5 mt-1.5">
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-emerald-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q2" value="A" class="accent-emerald-600"> A. Transpirasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-emerald-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q2" value="B" class="accent-emerald-600"> B. Aliran Permukaan
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-emerald-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q2" value="C" class="accent-emerald-600"> C. Kondensasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-emerald-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q2" value="D" class="accent-emerald-600"> D. Presipitasi
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Soal 3 -->
+                <div class="bg-white rounded-2xl p-3 border-2 border-slate-200 shadow-sm flex flex-col justify-between" id="q-card-3">
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800">
+                        <span class="inline-block bg-indigo-500 text-white px-2 py-0.5 rounded-lg mr-1">3</span>
+                        Ketika awan sudah jenuh dan berat menahan titik-titik air, terjadilah hujan yang disebut...
+                    </p>
+                    <div class="grid grid-cols-2 gap-1.5 mt-1.5">
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-indigo-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q3" value="A" class="accent-indigo-600"> A. Evaporasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-indigo-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q3" value="B" class="accent-indigo-600"> B. Infiltrasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-indigo-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q3" value="C" class="accent-indigo-600"> C. Presipitasi
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-indigo-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q3" value="D" class="accent-indigo-600"> D. Transpirasi
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Soal 4 -->
+                <div class="bg-white rounded-2xl p-3 border-2 border-slate-200 shadow-sm flex flex-col justify-between" id="q-card-4">
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800">
+                        <span class="inline-block bg-amber-600 text-white px-2 py-0.5 rounded-lg mr-1">4</span>
+                        Apa manfaat penting dari tahap <strong>Infiltrasi</strong> bagi kehidupan makhluk hidup di darat?
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-1.5">
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-amber-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q4" value="A" class="accent-amber-600"> A. Membuat awan mendung
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-amber-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q4" value="B" class="accent-amber-600"> B. Menyimpan cadangan air tanah
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-amber-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q4" value="C" class="accent-amber-600"> C. Menguapkan air laut
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-1.5 rounded-xl border border-slate-200 hover:bg-amber-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q4" value="D" class="accent-amber-600"> D. Menimbulkan petir
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Soal 5 (Mengurutkan / Melengkapi Urutan Proses - Full 2 Kolom di Layar Besar) -->
+                <div class="lg:col-span-2 bg-white rounded-2xl p-3 border-2 border-slate-200 shadow-sm flex flex-col justify-between" id="q-card-5">
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800">
+                        <span class="inline-block bg-cyan-600 text-white px-2 py-0.5 rounded-lg mr-1">5</span>
+                        Lengkapi urutan perjalanan siklus air berikut: <span class="text-sky-700">Evaporasi ➡️ [ ... ] ➡️ Presipitasi ➡️ Infiltrasi & Aliran Permukaan</span>
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1.5">
+                        <label class="lkpd-opt flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-cyan-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q5" value="A" class="accent-cyan-600"> A. Pembekuan
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-cyan-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q5" value="B" class="accent-cyan-600"> B. Kondensasi (Awan)
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-cyan-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q5" value="C" class="accent-cyan-600"> C. Banjir Bandang
+                        </label>
+                        <label class="lkpd-opt flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-cyan-50 cursor-pointer text-xs font-bold">
+                            <input type="radio" name="q5" value="D" class="accent-cyan-600"> D. Pengendapan Batu
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer LKPD: Umpan Balik Skor & Tombol Aksi -->
+            <div class="bg-white rounded-2xl px-4 py-2.5 border-2 border-sky-200 shadow-sm flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div id="lkpd-feedback" class="text-xs sm:text-sm font-bold text-slate-600 flex items-center gap-2">
+                    <span>🎯</span> Pilih semua jawaban di atas, lalu tekan tombol <strong>Periksa Jawaban</strong>!
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetLKPD()" class="btn-bounce bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-4 py-2 rounded-xl text-xs sm:text-sm">
+                        🔄 Reset LKPD
+                    </button>
+                    <button onclick="checkLKPD()" class="btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-5 py-2 rounded-xl shadow text-xs sm:text-sm flex items-center gap-1.5">
+                        <span>✅</span> Periksa Jawaban
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================================
+             TAB 5: PENGEMBANG & INFORMASI MEDIA
+             ========================================================= -->
+        <section id="view-pengembang" class="tab-view hidden w-full h-full flex items-center justify-center">
+            <div class="bg-white/95 rounded-3xl p-6 sm:p-8 border-4 border-sky-200 shadow-xl max-w-3xl w-full flex flex-col sm:flex-row items-center gap-6">
+                <!-- Avatar Ilustrasi -->
+                <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-br from-sky-400 to-indigo-600 flex flex-col items-center justify-center text-white shadow-lg shrink-0 border-4 border-white">
+                    <span class="text-5xl sm:text-6xl">👩‍🏫</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider mt-1 bg-white/20 px-2 py-0.5 rounded-full">EduTech SD</span>
+                </div>
+
+                <!-- Detail Informasi Pengembang -->
+                <div class="flex-1 text-center sm:text-left space-y-2.5">
+                    <div class="inline-block bg-amber-100 text-amber-800 font-extrabold text-xs px-3 py-1 rounded-full">
+                        Media Pembelajaran Interaktif IPAS
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-sky-900">Tim Pengembang Media Edukasi SD</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
+                        Laboratorium maya ini dirancang khusus untuk membantu siswa <strong>Kelas 5 Sekolah Dasar</strong> memahami konsep <em>Siklus Air (Hidrologi)</em> secara visual, interaktif, dan menyenangkan sesuai Kurikulum Merdeka.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-left">
+                        <div class="bg-sky-50 p-2.5 rounded-xl border border-sky-200">
+                            <div class="text-[10px] font-extrabold text-sky-600 uppercase">Mata Pelajaran & Fase</div>
+                            <div class="text-xs font-bold text-slate-800">IPAS Kelas 5 SD (Fase C)</div>
+                        </div>
+                        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+                            <div class="text-[10px] font-extrabold text-emerald-600 uppercase">Tujuan Pembelajaran</div>
+                            <div class="text-xs font-bold text-slate-800">Menganalisis 6 tahapan siklus air & dampaknya</div>
+                        </div>
+                        <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+                            <div class="text-[10px] font-extrabold text-amber-600 uppercase">Teknologi Grafis</div>
+                            <div class="text-xs font-bold text-slate-800">HTML5 Canvas 2D & Tailwind CSS</div>
+                        </div>
+                        <div class="bg-indigo-50 p-2.5 rounded-xl border border-indigo-200">
+                            <div class="text-[10px] font-extrabold text-indigo-600 uppercase">Sintesis Efek Suara</div>
+                            <div class="text-xs font-bold text-slate-800">Web Audio API (Real-time Sound)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= SCRIPT LOGIKA, ANIMASI KANVAS & WEB AUDIO API ================= -->
+    <script>
+        /* ==========================================================================
+           1. SISTEM EFEK SUARA (WEB AUDIO API - TANPA BERKAS EKSTERNAL)
+           ========================================================================== */
+        let audioCtx = null;
+        let isMuted = false;
+
+        // Inisialisasi AudioContext saat interaksi pertama pengguna
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Toggle Mute / Unmute
+        function toggleSound() {
+            initAudio();
+            isMuted = !isMuted;
+            const btn = document.getElementById('btn-sound-toggle');
+            const icon = document.getElementById('sound-icon');
+            const text = document.getElementById('sound-text');
+
+            if (isMuted) {
+                btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-400');
+                btn.classList.add('bg-slate-500', 'hover:bg-slate-400');
+                icon.textContent = '🔇';
+                text.textContent = 'Suara Mati';
+            } else {
+                btn.classList.remove('bg-slate-500', 'hover:bg-slate-400');
+                btn.classList.add('bg-emerald-500', 'hover:bg-emerald-400');
+                icon.textContent = '🔊';
+                text.textContent = 'Suara Aktif';
+                playPopSound();
+            }
+        }
+
+        // Efek suara klik tombol ceria (pop/beep)
+        function playPopSound() {
+            if (isMuted) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.09);
+
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        }
+
+        // Efek suara sesuai tahapan siklus air
+        function playStageSound(stage) {
+            if (isMuted) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+
+            if (stage === 'evaporasi' || stage === 'transpirasi') {
+                // Desis uap lembut / angin naik (Filtered White Noise + Rising Tone)
+                const bufferSize = audioCtx.sampleRate * 1.1;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(400, now);
+                filter.frequency.exponentialRampToValueAtTime(1400, now + 1.0);
+                filter.Q.value = 3;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.14, now + 0.4);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(now);
+            } else if (stage === 'kondensasi') {
+                // Gemuruh angin awan lembut (Lowpass Noise + Deep Hum)
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(130, now);
+                osc.frequency.linearRampToValueAtTime(95, now + 1.1);
+
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.35);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 1.1);
+            } else if (stage === 'presipitasi') {
+                // Rintik hujan (Pink/White Noise bertekstur + tetesan acak)
+                const bufferSize = audioCtx.sampleRate * 1.3;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * (Math.random() > 0.85 ? 1.5 : 0.4);
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 1100;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.005, now + 1.3);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(now);
+            } else if (stage === 'infiltrasi' || stage === 'runoff') {
+                // Gemericik air mengalir / meresap (Serangkaian nada air bergelembung)
+                for (let i = 0; i < 6; i++) {
+                    const t = now + i * 0.14;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    const baseFreq = stage === 'infiltrasi' ? 320 + i * 45 : 460 + (i % 3) * 90;
+                    osc.frequency.setValueAtTime(baseFreq, t);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.45, t + 0.11);
+
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.12);
+                }
+            }
+        }
+
+        // Efek suara LKPD (Benar / Fanfare & Kurang Tepat)
+        function playQuizSound(isSuccess) {
+            if (isMuted) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            if (isSuccess) {
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    gain.gain.setValueAtTime(0.18, now + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.35);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.1);
+                    osc.stop(now + idx * 0.1 + 0.35);
+                });
+            } else {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(165, now + 0.3);
+                gain.gain.setValueAtTime(0.14, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.32);
+            }
+        }
+
+        /* ==========================================================================
+           2. NAVIGASI ANTAR TAB (TEORI, PROSEDUR, SIMULASI, LKPD, PENGEMBANG)
+           ========================================================================== */
+        function switchTab(tabName) {
+            playPopSound();
+            // Sembunyikan semua tab
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+            // Reset gaya semua tombol tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-400', 'text-slate-900', 'shadow-md');
+                btn.classList.add('bg-white/10', 'text-white');
+            });
+
+            // Tampilkan tab terpilih
+            const activeView = document.getElementById(`view-${tabName}`);
+            if (activeView) activeView.classList.remove('hidden');
+
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white/10', 'text-white');
+                activeBtn.classList.add('bg-amber-400', 'text-slate-900', 'shadow-md');
+            }
+
+            // Resize kanvas jika masuk ke tab simulasi
+            if (tabName === 'simulasi') {
+                resizeCanvas();
+            }
+        }
+
+        // Lompat langsung dari kartu Teori ke Simulasi dengan tahapan tertentu
+        function jumpToSimStage(stage) {
+            switchTab('simulasi');
+            setTimeout(() => triggerStage(stage), 100);
+        }
+
+        /* ==========================================================================
+           3. LOGIKA SIMULASI & ANIMASI KANVAS SIKLUS AIR
+           ========================================================================== */
+        const canvas = document.getElementById('waterCycleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Data penjelasan setiap tahapan
+        const STAGE_DATA = {
+            idle: {
+                name: 'Siap Mengamati',
+                icon: '🌤️',
+                title: 'Selamat Datang di Lab Alam!',
+                desc: 'Pilih salah satu tombol tahapan di bawah layar atau klik Simulasi Otomatis untuk mengamati perjalanan air dari laut ke awan hingga kembali ke Bumi.',
+                fact: '💡 Fakta Seru: Sekitar 71% permukaan Bumi tertutup oleh air, sebagian besar berada di lautan!'
+            },
+            evaporasi: {
+                name: '1. Evaporasi (Penguapan)',
+                icon: '☀️',
+                title: 'Tahap 1: Evaporasi (Penguapan)',
+                desc: 'Panas sinar matahari menghangatkan air laut dan sungai. Air berubah wujud dari cair menjadi uap air (gas) yang ringan dan naik ke langit.',
+                fact: '💡 Semakin tinggi suhu matahari, semakin cepat uap air naik ke atmosfer!'
+            },
+            transpirasi: {
+                name: '2. Transpirasi (Tumbuhan)',
+                icon: '🌳',
+                title: 'Tahap 2: Transpirasi dari Tumbuhan',
+                desc: 'Selain laut, pepohonan di hutan juga melepaskan uap air melalui pori-pori kecil di daunnya (stomata) saat terkena sinar matahari.',
+                fact: '💡 Satu pohon besar dapat melepaskan ratusan liter uap air ke udara setiap harinya!'
+            },
+            kondensasi: {
+                name: '3. Kondensasi (Awan)',
+                icon: '☁️',
+                title: 'Tahap 3: Kondensasi (Pembentukan Awan)',
+                desc: 'Di langit yang tinggi dan dingin, uap air mendingin dan berubah kembali menjadi titik-titik air sangat kecil yang berkumpul membentuk awan.',
+                fact: '💡 Awan putih yang semakin penuh titik air akan berubah menjadi awan mendung kelabu.'
+            },
+            presipitasi: {
+                name: '4. Presipitasi (Hujan)',
+                icon: '🌧️',
+                title: 'Tahap 4: Presipitasi (Turun Hujan)',
+                desc: 'Titik-titik air di awan bergabung menjadi makin besar dan berat hingga tidak mampu lagi ditahan udara, lalu jatuh sebagai hujan ke Bumi.',
+                fact: '💡 Di daerah pegunungan yang sangat dingin, presipitasi juga bisa turun dalam bentuk salju atau es.'
+            },
+            infiltrasi: {
+                name: '5. Infiltrasi (Peresapan)',
+                icon: '🌱',
+                title: 'Tahap 5: Infiltrasi (Meresap ke Tanah)',
+                desc: 'Air hujan yang jatuh di daratan dan hutan meresap masuk ke dalam pori-pori tanah, mengisi cadangan air tanah dan akar-akar pohon.',
+                fact: '💡 Hutan yang lebat membantu tanah menyerap air hujan lebih banyak sehingga mencegah banjir!'
+            },
+            runoff: {
+                name: '6. Aliran Permukaan (Runoff)',
+                icon: '🏞️',
+                title: 'Tahap 6: Aliran Permukaan (Runoff)',
+                desc: 'Air hujan yang berada di permukaan tanah mengalir mengikuti kemiringan dataran melalui sungai-sungai kembali menuju ke laut.',
+                fact: '💡 Setelah air sampai di laut, siklus air pun lengkap dan siap dimulai kembali!'
+            }
+        };
+
+        // State simulasi
+        let simState = {
+            currentStage: 'idle',
+            sunTemp: 32,          // 15 - 45 derajat C
+            cloudMoisture: 25,    // 0 - 100 %
+            groundWater: 40,      // 0 - 100 %
+            autoMode: false,
+            autoTimer: null,
+            autoIndex: 0,
+            time: 0
+        };
+
+        // Koleksi partikel animasi
+        let vaporParticles = [];
+        let rainParticles = [];
+        let soilParticles = [];
+        let riverParticles = [];
+
+        // Ukuran kanvas responsif
+        function resizeCanvas() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            if (!wrapper) return;
+            const rect = wrapper.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Update Suhu Matahari dari Slider
+        function updateSunTemp(val) {
+            simState.sunTemp = parseInt(val);
+            let label = 'Hangat';
+            if (simState.sunTemp < 24) label = 'Sejuk';
+            else if (simState.sunTemp > 37) label = 'Terik';
+            document.getElementById('sun-temp-value').textContent = `${simState.sunTemp}°C (${label})`;
+        }
+
+        // Update Tampilan Indikator & Panel Info
+        function updateUIInfo(stageKey) {
+            const data = STAGE_DATA[stageKey] || STAGE_DATA.idle;
+            document.getElementById('badge-stage-icon').textContent = data.icon;
+            document.getElementById('badge-stage-name').textContent = data.name;
+            document.getElementById('info-emoji').textContent = data.icon;
+            document.getElementById('info-title').textContent = data.title;
+            document.getElementById('info-desc').textContent = data.desc;
+            document.getElementById('info-fact').textContent = data.fact;
+
+            // Highlight tombol tahapan aktif
+            document.querySelectorAll('.stage-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-blue-500', 'active-stage-glow', 'scale-105');
+            });
+            const activeBtn = document.getElementById(`btn-stage-${stageKey}`);
+            if (activeBtn) {
+                activeBtn.classList.add('ring-4', 'ring-blue-500', 'active-stage-glow', 'scale-105');
+            }
+        }
+
+        function updateBars() {
+            simState.cloudMoisture = Math.max(10, Math.min(100, simState.cloudMoisture));
+            simState.groundWater = Math.max(15, Math.min(100, simState.groundWater));
+
+            document.getElementById('stat-cloud-text').textContent = `${Math.round(simState.cloudMoisture)}%`;
+            document.getElementById('stat-cloud-bar').style.width = `${simState.cloudMoisture}%`;
+
+            document.getElementById('stat-ground-text').textContent = `${Math.round(simState.groundWater)}%`;
+            document.getElementById('stat-ground-bar').style.width = `${simState.groundWater}%`;
+        }
+
+        // Memicu tahapan tertentu secara manual
+        function triggerStage(stage, fromAuto = false) {
+            if (!fromAuto && simState.autoMode) {
+                stopAutoCycle();
+            }
+            simState.currentStage = stage;
+            updateUIInfo(stage);
+            playStageSound(stage);
+
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+            const speedMult = simState.sunTemp / 30;
+
+            if (stage === 'evaporasi') {
+                simState.cloudMoisture += 18 * speedMult;
+                for (let i = 0; i < 22; i++) {
+                    vaporParticles.push({
+                        x: w * (0.62 + Math.random() * 0.34),
+                        y: h * (0.68 + Math.random() * 0.06),
+                        vy: -(1.1 + Math.random() * 1.2) * speedMult,
+                        r: 4 + Math.random() * 4,
+                        alpha: 0.9,
+                        type: 'sea'
+                    });
+                }
+            } else if (stage === 'transpirasi') {
+                simState.cloudMoisture += 14 * speedMult;
+                for (let i = 0; i < 18; i++) {
+                    vaporParticles.push({
+                        x: w * (0.28 + Math.random() * 0.22),
+                        y: h * (0.52 + Math.random() * 0.08),
+                        vy: -(1.0 + Math.random() * 1.1) * speedMult,
+                        r: 3.5 + Math.random() * 3.5,
+                        alpha: 0.9,
+                        type: 'tree'
+                    });
+                }
+            } else if (stage === 'kondensasi') {
+                simState.cloudMoisture = Math.max(simState.cloudMoisture + 25, 85);
+            } else if (stage === 'presipitasi') {
+                simState.cloudMoisture = Math.max(simState.cloudMoisture, 90);
+                for (let i = 0; i < 65; i++) {
+                    rainParticles.push({
+                        x: w * (0.14 + Math.random() * 0.45),
+                        y: h * (0.20 + Math.random() * 0.12),
+                        vy: 4.5 + Math.random() * 3.5,
+                        len: 10 + Math.random() * 8
+                    });
+                }
+            } else if (stage === 'infiltrasi') {
+                simState.groundWater += 25;
+                for (let i = 0; i < 28; i++) {
+                    soilParticles.push({
+                        x: w * (0.15 + Math.random() * 0.40),
+                        y: h * (0.66 + Math.random() * 0.03),
+                        vy: 0.7 + Math.random() * 0.8,
+                        r: 3.5 + Math.random() * 2.5,
+                        alpha: 0.95
+                    });
+                }
+            } else if (stage === 'runoff') {
+                for (let i = 0; i < 26; i++) {
+                    riverParticles.push({
+                        t: Math.random() * 0.35, // Posisi sepanjang aliran sungai ke laut
+                        speed: 0.006 + Math.random() * 0.005,
+                        r: 4 + Math.random() * 2
+                    });
+                }
+            }
+            updateBars();
+        }
+
+        // Mode Simulasi Otomatis (Siklus Lengkap Berurutan)
+        const CYCLE_ORDER = ['evaporasi', 'transpirasi', 'kondensasi', 'presipitasi', 'infiltrasi', 'runoff'];
+
+        function toggleAutoCycle() {
+            playPopSound();
+            if (simState.autoMode) {
+                stopAutoCycle();
+            } else {
+                startAutoCycle();
+            }
+        }
+
+        function startAutoCycle() {
+            simState.autoMode = true;
+            simState.autoIndex = 0;
+            document.getElementById('auto-btn-icon').textContent = '⏸️';
+            document.getElementById('auto-btn-text').textContent = 'Hentikan Otomatis';
+            document.getElementById('auto-mode-indicator').classList.remove('hidden');
+
+            triggerStage(CYCLE_ORDER[0], true);
+            simState.autoTimer = setInterval(() => {
+                simState.autoIndex = (simState.autoIndex + 1) % CYCLE_ORDER.length;
+                triggerStage(CYCLE_ORDER[simState.autoIndex], true);
+            }, 3400);
+        }
+
+        function stopAutoCycle() {
+            simState.autoMode = false;
+            clearInterval(simState.autoTimer);
+            document.getElementById('auto-btn-icon').textContent = '▶️';
+            document.getElementById('auto-btn-text').textContent = 'Simulasi Otomatis';
+            document.getElementById('auto-mode-indicator').classList.add('hidden');
+        }
+
+        // Reset Simulasi ke Keadaan Awal
+        function resetSimulation() {
+            playPopSound();
+            stopAutoCycle();
+            simState.currentStage = 'idle';
+            simState.sunTemp = 32;
+            simState.cloudMoisture = 25;
+            simState.groundWater = 40;
+            vaporParticles = [];
+            rainParticles = [];
+            soilParticles = [];
+            riverParticles = [];
+
+            document.getElementById('sun-temp-slider').value = 32;
+            updateSunTemp(32);
+            updateBars();
+            updateUIInfo('idle');
+        }
+
+        /* ==========================================================================
+           4. RENDER GAMBAR PEMANDANGAN ALAM & PARTIKEL DI KANVAS
+           ========================================================================== */
+        function drawCloud(x, y, scale, darkness) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            // Warna awan berubah dari putih cerah ke kelabu mendung berdasarkan kelembapan
+            const shade = Math.round(255 - darkness * 115);
+            ctx.fillStyle = `rgb(${shade}, ${shade + 4}, ${Math.min(255, shade + 14)})`;
+            ctx.shadowColor = 'rgba(0,0,0,0.12)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 28, 0, Math.PI * 2);
+            ctx.arc(26, -8, 34, 0, Math.PI * 2);
+            ctx.arc(58, -4, 30, 0, Math.PI * 2);
+            ctx.arc(82, 6, 22, 0, Math.PI * 2);
+            ctx.arc(-22, 6, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawTree(x, y, scale) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+            // Batang pohon
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(-5, -24, 10, 26);
+            // Tajuk daun bulat ramah anak
+            ctx.fillStyle = '#16a34a';
+            ctx.beginPath();
+            ctx.arc(0, -34, 18, 0, Math.PI * 2);
+            ctx.arc(-13, -24, 14, 0, Math.PI * 2);
+            ctx.arc(13, -24, 14, 0, Math.PI * 2);
+            ctx.fill();
+            // Highlight daun
+            ctx.fillStyle = '#4ade80';
+            ctx.beginPath();
+            ctx.arc(-5, -38, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function renderLoop() {
+            simState.time += 0.025;
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.width / dpr;
+            const h = canvas.height / dpr;
+
+            if (w === 0 || h === 0) {
+                requestAnimationFrame(renderLoop);
+                return;
+            }
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. LANGIT GRADASI (Sedikit meredup saat hujan/presipitasi)
+            const isRaining = simState.currentStage === 'presipitasi';
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.72);
+            if (isRaining) {
+                skyGrad.addColorStop(0, '#64748b');
+                skyGrad.addColorStop(1, '#cbd5e1');
+            } else {
+                skyGrad.addColorStop(0, '#38bdf8');
+                skyGrad.addColorStop(1, '#e0f2fe');
+            }
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            // 2. MATAHARI BERSINAR (Kanan Atas - Ukuran & Cahaya menyesuaikan Suhu)
+            const sunX = w * 0.88;
+            const sunY = h * 0.16;
+            const sunScale = 0.8 + (simState.sunTemp - 15) / 45;
+            ctx.save();
+            ctx.translate(sunX, sunY);
+            // Sinar berputar
+            ctx.rotate(simState.time * 0.25);
+            ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
+            for (let i = 0; i < 12; i++) {
+                ctx.rotate(Math.PI / 6);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-10 * sunScale, -56 * sunScale);
+                ctx.lineTo(10 * sunScale, -56 * sunScale);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // Lingkaran Matahari
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 30 * sunScale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fef08a';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 3. PEGUNUNGAN DI LATAR BELAKANG (Kiri)
+            ctx.fillStyle = '#475569';
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.66);
+            ctx.lineTo(w * 0.12, h * 0.28);
+            ctx.lineTo(w * 0.28, h * 0.66);
+            ctx.closePath();
+            ctx.fill();
+
+            // Puncak Salju Gunung
+            ctx.fillStyle = '#f8fafc';
+            ctx.beginPath();
+            ctx.moveTo(w * 0.12, h * 0.28);
+            ctx.lineTo(w * 0.088, h * 0.38);
+            ctx.lineTo(w * 0.12, h * 0.35);
+            ctx.lineTo(w * 0.152, h * 0.38);
+            ctx.closePath();
+            ctx.fill();
+
+            // Bukit Kedua
+            ctx.fillStyle = '#64748b';
+            ctx.beginPath();
+            ctx.moveTo(w * 0.14, h * 0.66);
+            ctx.lineTo(w * 0.27, h * 0.36);
+            ctx.lineTo(w * 0.42, h * 0.66);
+            ctx.closePath();
+            ctx.fill();
+
+            // 4. DARATAN HIJAU, SUNGAI & LAUTAN
+            // Laut (Kanan: 58% - 100%)
+            const seaWave = Math.sin(simState.time * 2) * 3;
+            const seaGrad = ctx.createLinearGradient(0, h * 0.66, 0, h);
+            seaGrad.addColorStop(0, '#0284c7');
+            seaGrad.addColorStop(1, '#1e3a8a');
+            ctx.fillStyle = seaGrad;
+            ctx.beginPath();
+            ctx.moveTo(w * 0.56, h * 0.67 + seaWave);
+            ctx.quadraticCurveTo(w * 0.78, h * 0.65 - seaWave, w, h * 0.67 + seaWave);
+            ctx.lineTo(w, h);
+            ctx.lineTo(w * 0.56, h);
+            ctx.closePath();
+            ctx.fill();
+
+            // Lapisan Tanah Bawah (Kiri: 0% - 58%)
+            ctx.fillStyle = '#92400e'; // Tanah atas
+            ctx.fillRect(0, h * 0.66, w * 0.58, h * 0.16);
+
+            ctx.fillStyle = '#78350f'; // Lapisan batuan/tanah dalam
+            ctx.fillRect(0, h * 0.82, w * 0.58, h * 0.18);
+
+            // Lapisan Cadangan Air Tanah (Akuifer - Tinggi mengikuti groundWater)
+            const aquiferHeight = (h * 0.15) * (simState.groundWater / 100);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
+            ctx.fillRect(0, h - aquiferHeight, w * 0.575, aquiferHeight);
+
+            // Permukaan Rumput Hijau
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.66);
+            ctx.lineTo(w * 0.58, h * 0.67);
+            ctx.lineTo(w * 0.58, h * 0.69);
+            ctx.lineTo(0, h * 0.69);
+            ctx.closePath();
+            ctx.fill();
+
+            // Aliran Sungai Permukaan (Dari kaki gunung menuju laut)
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(w * 0.22, h * 0.66);
+            ctx.quadraticCurveTo(w * 0.40, h * 0.665, w * 0.58, h * 0.675);
+            ctx.stroke();
+
+            // Pepohonan Hutan (Sumber Transpirasi)
+            drawTree(w * 0.30, h * 0.66, 0.95);
+            drawTree(w * 0.36, h * 0.66, 1.15);
+            drawTree(w * 0.43, h * 0.66, 0.9);
+            drawTree(w * 0.49, h * 0.665, 1.05);
+
+            // 5. AWAN DI LANGIT (Ukuran & Warna berdasarkan cloudMoisture)
+            const darkness = Math.max(0, (simState.cloudMoisture - 35) / 65);
+            const cloudScale = 0.85 + (simState.cloudMoisture / 100) * 0.45;
+            const drift = Math.sin(simState.time * 0.6) * 12;
+
+            drawCloud(w * 0.22 + drift, h * 0.16, cloudScale, darkness);
+            drawCloud(w * 0.45 - drift * 0.7, h * 0.14, cloudScale * 1.1, darkness);
+            drawCloud(w * 0.66 + drift * 0.5, h * 0.19, cloudScale * 0.85, darkness * 0.7);
+
+            // 6. ANIMASI PARTIKEL TIAP TAHAPAN
+            // A. Partikel Uap Air Naik (Evaporasi & Transpirasi)
+            for (let i = vaporParticles.length - 1; i >= 0; i--) {
+                const p = vaporParticles[i];
+                p.y += p.vy;
+                p.x += Math.sin(simState.time * 5 + i) * 0.6;
+                p.alpha -= 0.0065;
+
+                ctx.save();
+                ctx.fillStyle = p.type === 'tree'
+                    ? `rgba(187, 247, 208, ${p.alpha})`
+                    : `rgba(255, 255, 255, ${p.alpha})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                if (p.alpha <= 0 || p.y < h * 0.2) {
+                    vaporParticles.splice(i, 1);
+                }
+            }
+
+            // B. Partikel Hujan Turun (Presipitasi)
+            if (simState.currentStage === 'presipitasi' && rainParticles.length < 45) {
+                rainParticles.push({
+                    x: w * (0.14 + Math.random() * 0.45),
+                    y: h * 0.21,
+                    vy: 5 + Math.random() * 3,
+                    len: 12
+                });
+            }
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 2.2;
+            for (let i = rainParticles.length - 1; i >= 0; i--) {
+                const r = rainParticles[i];
+                r.y += r.vy;
+                r.x -= 0.6; // Sedikit miring tertiup angin
+
+                ctx.beginPath();
+                ctx.moveTo(r.x, r.y);
+                ctx.lineTo(r.x - 1.5, r.y + r.len);
+                ctx.stroke();
+
+                if (r.y > h * 0.66) {
+                    rainParticles.splice(i, 1);
+                    if (simState.currentStage === 'presipitasi') {
+                        simState.cloudMoisture = Math.max(30, simState.cloudMoisture - 0.15);
+                        simState.groundWater = Math.min(100, simState.groundWater + 0.12);
+                        updateBars();
+                    }
+                }
+            }
+
+            // C. Partikel Air Meresap ke Tanah (Infiltrasi)
+            for (let i = soilParticles.length - 1; i >= 0; i--) {
+                const s = soilParticles[i];
+                s.y += s.vy;
+                s.alpha -= 0.006;
+
+                ctx.fillStyle = `rgba(125, 211, 252, ${s.alpha})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (s.y > h * 0.92 || s.alpha <= 0) {
+                    soilParticles.splice(i, 1);
+                }
+            }
+
+            // D. Partikel Aliran Permukaan Menuju Laut (Runoff)
+            for (let i = riverParticles.length - 1; i >= 0; i--) {
+                const rp = riverParticles[i];
+                rp.t += rp.speed;
+                const rx = w * (0.22 + rp.t * 0.38);
+                const ry = h * (0.658 + rp.t * 0.016);
+
+                ctx.fillStyle = '#e0f2fe';
+                ctx.beginPath();
+                ctx.arc(rx, ry, rp.r, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (rp.t >= 1) {
+                    riverParticles.splice(i, 1);
+                }
+            }
+
+            // 7. LABEL PENANDA LOKASI DI KANVAS (Bantu Siswa Mengidentifikasi)
+            ctx.font = 'bold 12px Nunito, sans-serif';
+            ctx.textAlign = 'center';
+
+            // Label Laut
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText('🌊 LAUTAN', w * 0.79, h * 0.83);
+
+            // Label Air Tanah
+            ctx.fillStyle = '#e0f2fe';
+            ctx.fillText('💧 CADANGAN AIR TANAH', w * 0.28, h * 0.94);
+
+            // Label Hutan
+            ctx.fillStyle = '#fef08a';
+            ctx.fillText('🌳 HUTAN / TUMBUHAN', w * 0.40, h * 0.74);
+
+            // Panah Indikator Visual Saat Tahapan Aktif
+            drawStageArrowIndicator(w, h);
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        // Menggambar panah petunjuk arah proses pada kanvas saat suatu tahap aktif
+        function drawStageArrowIndicator(w, h) {
+            const st = simState.currentStage;
+            if (st === 'idle') return;
+
+            ctx.save();
+            const pulse = Math.sin(simState.time * 6) * 4;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 2;
+
+            let label = '';
+            let lx = w * 0.5;
+            let ly = h * 0.4;
+
+            if (st === 'evaporasi') {
+                label = '⬆️ Uap Air Naik dari Laut';
+                lx = w * 0.78;
+                ly = h * 0.46 + pulse;
+            } else if (st === 'transpirasi') {
+                label = '⬆️ Uap Air dari Daun Pohon';
+                lx = w * 0.40;
+                ly = h * 0.42 + pulse;
+            } else if (st === 'kondensasi') {
+                label = '☁️ Uap Mengembun Jadi Awan';
+                lx = w * 0.44;
+                ly = h * 0.28 + pulse;
+            } else if (st === 'presipitasi') {
+                label = '⬇️ Titik Air Jatuh Jadi Hujan';
+                lx = w * 0.36;
+                ly = h * 0.44 + pulse;
+            } else if (st === 'infiltrasi') {
+                label = '⬇️ Air Meresap ke Tanah';
+                lx = w * 0.30;
+                ly = h * 0.79 + pulse;
+            } else if (st === 'runoff') {
+                label = '➡️ Mengalir Kembali ke Laut';
+                lx = w * 0.45;
+                ly = h * 0.61 + pulse;
+            }
+
+            if (label) {
+                ctx.font = 'bold 13px Nunito, sans-serif';
+                const textW = ctx.measureText(label).width + 20;
+                ctx.beginPath();
+                ctx.roundRect(lx - textW / 2, ly - 15, textW, 28, 12);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.textAlign = 'center';
+                ctx.fillText(label, lx, ly + 4);
+            }
+            ctx.restore();
+        }
+
+        /* ==========================================================================
+           5. LOGIKA LKPD INTERAKTIF (PENILAIAN OTOMATIS & UMPAN BALIK)
+           ========================================================================== */
+        const ANSWER_KEY = {
+            q1: 'B', // Evaporasi
+            q2: 'A', // Transpirasi
+            q3: 'C', // Presipitasi
+            q4: 'B', // Menyimpan cadangan air tanah
+            q5: 'B'  // Kondensasi (Awan)
+        };
+
+        function checkLKPD() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            const classInput = document.getElementById('student-class').value.trim() || 'Kelas 5';
+            const feedbackEl = document.getElementById('lkpd-feedback');
+
+            if (!nameInput) {
+                playQuizSound(false);
+                feedbackEl.innerHTML = `<span class="text-rose-600">⚠️ Silakan ketik <strong>Nama Lengkap</strong> kamu terlebih dahulu di pojok kanan atas LKPD!</span>`;
+                document.getElementById('student-name').focus();
+                return;
+            }
+
+            let score = 0;
+            let answeredCount = 0;
+
+            for (let i = 1; i <= 5; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                const card = document.getElementById(`q-card-${i}`);
+                card.classList.remove('border-emerald-500', 'bg-emerald-50/40', 'border-rose-500', 'bg-rose-50/40');
+
+                if (selected) {
+                    answeredCount++;
+                    if (selected.value === ANSWER_KEY[`q${i}`]) {
+                        score += 20;
+                        card.classList.add('border-emerald-500', 'bg-emerald-50/40');
+                    } else {
+                        card.classList.add('border-rose-500', 'bg-rose-50/40');
+                    }
+                }
+            }
+
+            if (answeredCount < 5) {
+                playQuizSound(false);
+                feedbackEl.innerHTML = `<span class="text-amber-700">⚠️ Masih ada soal yang belum dijawab (${answeredCount}/5 terjawab). Lengkapi semua soal ya!</span>`;
+                return;
+            }
+
+            if (score >= 80) {
+                playQuizSound(true);
+                feedbackEl.innerHTML = `<span class="text-emerald-700">🎉 Hebat <strong>${nameInput} (${classInput})</strong>! Nilai Kamu: <span class="bg-emerald-600 text-white px-2.5 py-0.5 rounded-lg text-base">${score} / 100</span> — Kamu sudah paham siklus air!</span>`;
+            } else {
+                playQuizSound(false);
+                feedbackEl.innerHTML = `<span class="text-indigo-700">💪 Semangat <strong>${nameInput} (${classInput})</strong>! Nilai Kamu: <span class="bg-amber-500 text-white px-2.5 py-0.5 rounded-lg text-base">${score} / 100</span> — Coba cek kartu berwarna merah dan pelajari lagi ya!</span>`;
+            }
+        }
+
+        function resetLKPD() {
+            playPopSound();
+            document.querySelectorAll('#lkpd-questions-grid input[type="radio"]').forEach(r => r.checked = false);
+            for (let i = 1; i <= 5; i++) {
+                const card = document.getElementById(`q-card-${i}`);
+                card.classList.remove('border-emerald-500', 'bg-emerald-50/40', 'border-rose-500', 'bg-rose-50/40');
+            }
+            document.getElementById('lkpd-feedback').innerHTML = `<span>🎯</span> Jawaban telah direset. Silakan kerjakan kembali dengan teliti!`;
+        }
+
+        /* ==========================================================================
+           6. INISIALISASI SAAT HALAMAN DIMUAT
+           ========================================================================== */
+        window.onload = function () {
+            resizeCanvas();
+            updateBars();
+            renderLoop();
+        };
+    </script>
+</body>
+</html>
